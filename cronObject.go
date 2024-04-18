@@ -13,8 +13,10 @@ type CronObj struct {
 }
 
 const (
-	url            = "https://www.googleapis.com/youtube/v3/search"
-	key            = "AIzaSyD6OUXH2GgxLwPI3qvyb2L2fox30WaETIs"
+	url = "https://www.googleapis.com/youtube/v3/search"
+
+	//Insert your youtube api key here
+	key            = ""
 	part           = "snippet"
 	typeValue      = "video"
 	query          = "football"

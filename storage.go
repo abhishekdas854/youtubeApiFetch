@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -80,9 +81,77 @@ func (s *PostgreStore) AddInDb(videoInfos []VideoInfo) error {
 }
 
 func (s *PostgreStore) GetDetailsFromDbPaginated(pageNo int) ([]VideoInfo, error) {
-	return nil, nil
+
+	limit := 5
+	offset := (pageNo - 1) * limit
+
+	rows, err := s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube ORDER BY time DESC LIMIT $1 OFFSET $2", limit, offset)
+
+	if err != nil {
+		log.Fatal("Error while retrieving paginated data from db: ", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var videoInfos []VideoInfo
+
+	for rows.Next() {
+		var videoInfo VideoInfo
+
+		err := rows.Scan(&videoInfo.Id, &videoInfo.Title, &videoInfo.Description, &videoInfo.ThumbnailUrl, &videoInfo.DateTime)
+		if err != nil {
+			log.Fatal("Error while scaning rows: ", err)
+			return nil, err
+		}
+
+		log.Println("Video info: ", videoInfo)
+
+		videoInfos = append(videoInfos, videoInfo)
+
+	}
+
+	return videoInfos, nil
 }
 
 func (s *PostgreStore) GetDetailsUsingTitleAndDescription(title string, description string) ([]VideoInfo, error) {
-	return nil, nil
+	if len(title) == 0 && len(description) == 0 {
+		return nil, errors.New("Insert Valid title or description")
+	}
+
+	var rows *sql.Rows
+	var err error
+
+	if len(title) != 0 && len(description) != 0 {
+		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE description = $1 AND title = $2", description, title)
+	} else if len(title) == 0 && len(description) != 0 {
+		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE description = $1", description)
+	} else {
+		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE title = $1", title)
+	}
+
+	if err != nil {
+		log.Fatal("Error while retrieving data using description and title from db: ", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var videoInfos []VideoInfo
+
+	for rows.Next() {
+		var videoInfo VideoInfo
+
+		err := rows.Scan(&videoInfo.Id, &videoInfo.Title, &videoInfo.Description, &videoInfo.ThumbnailUrl, &videoInfo.DateTime)
+		if err != nil {
+			log.Fatal("Error while scaning rows for title description action: ", err)
+			return nil, err
+		}
+
+		log.Println("Video info: ", videoInfo)
+
+		videoInfos = append(videoInfos, videoInfo)
+
+	}
+
+	return videoInfos, nil
 }

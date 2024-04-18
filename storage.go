@@ -122,11 +122,12 @@ func (s *PostgreStore) GetDetailsUsingTitleAndDescription(title string, descript
 	var err error
 
 	if len(title) != 0 && len(description) != 0 {
-		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE description = $1 AND title = $2", description, title)
+		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE description LIKE '%' || $1 || '%' AND title LIKE '%' || $2 || '%'", description, title)
 	} else if len(title) == 0 && len(description) != 0 {
-		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE description = $1", description)
+		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE description LIKE '%' || $1 || '%'", description)
 	} else {
-		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE title = $1", title)
+		rows, err = s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube WHERE  title LIKE '%' || $1 || '%'", title)
+
 	}
 
 	if err != nil {

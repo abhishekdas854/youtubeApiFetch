@@ -51,7 +51,7 @@ func (s *APIServer) Run() {
 
 	router.HandleFunc("/videosPaginated/{pageNo}", makeHttpHandleFunc(s.GetVideoDataPaginated))
 
-	router.HandleFunc("/getVideo/{description}/{title}", makeHttpHandleFunc(s.GetVideoDataUsingTitleAndDescription))
+	router.HandleFunc("/getVideo", makeHttpHandleFunc(s.GetVideoDataUsingTitleAndDescription))
 
 	http.ListenAndServe(s.listenAddr, router)
 
@@ -84,5 +84,19 @@ func (s *APIServer) GetVideoDataPaginated(w http.ResponseWriter, r *http.Request
 }
 
 func (s *APIServer) GetVideoDataUsingTitleAndDescription(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	if r.Method != "GET" {
+		return errors.New("given endpoint only accepts get request")
+	}
+
+	queryParams := r.URL.Query()
+
+	description := queryParams.Get("description")
+	title := queryParams.Get("title")
+
+	res, err := s.store.GetDetailsUsingTitleAndDescription(title, description)
+
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, res)
 }

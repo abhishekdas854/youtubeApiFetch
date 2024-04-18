@@ -90,10 +90,6 @@ func (s *APIServer) GetVideoDataUsingTitleAndDescription(w http.ResponseWriter, 
 
 	queryParams := r.URL.Query()
 
-	// Extract individual query parameters
-	// param1 := queryParams.Get("param1")
-	// param2 := queryParams.Get("param2")
-
 	description := queryParams.Get("description")
 	title := queryParams.Get("title")
 

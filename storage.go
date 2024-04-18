@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 
 	_ "github.com/lib/pq"
 )
@@ -57,7 +58,24 @@ func (s *PostgreStore) createTable() error {
 }
 
 func (s *PostgreStore) AddInDb(videoInfos []VideoInfo) error {
+	stmt, err := s.db.Prepare("INSERT INTO youtube (title, description, thumbnailUrl, time) VALUES ($1,$2,$3,$4)")
 
+	if err != nil {
+		log.Fatal("Error while preparing db entry: ", err.Error())
+		return err
+	}
+
+	for _, videoInfo := range videoInfos {
+
+		_, err := stmt.Exec(videoInfo.Title, videoInfo.Description, videoInfo.ThumbnailUrl, videoInfo.DateTime)
+
+		if err != nil {
+			log.Fatal("Error while executing insert query into db: ", err)
+			return err
+		}
+	}
+
+	log.Println("Successfully inserted rows into db")
 	return nil
 }
 

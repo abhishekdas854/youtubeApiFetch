@@ -80,7 +80,36 @@ func (s *PostgreStore) AddInDb(videoInfos []VideoInfo) error {
 }
 
 func (s *PostgreStore) GetDetailsFromDbPaginated(pageNo int) ([]VideoInfo, error) {
-	return nil, nil
+
+	limit := 5
+	offset := (pageNo - 1) * limit
+
+	rows, err := s.db.Query("SELECT id, title, description, thumbnailUrl, time FROM youtube ORDER BY time DESC LIMIT $1 OFFSET $2", limit, offset)
+
+	if err != nil {
+		log.Fatal("Error while retrieving paginated data from db: ", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var videoInfos []VideoInfo
+
+	for rows.Next() {
+		var videoInfo VideoInfo
+
+		err := rows.Scan(&videoInfo.Id, &videoInfo.Title, &videoInfo.Description, &videoInfo.ThumbnailUrl, &videoInfo.DateTime)
+		if err != nil {
+			log.Fatal("Error while scaning rows: ", err)
+			return nil, err
+		}
+
+		log.Println("Video info: ", videoInfo)
+
+		videoInfos = append(videoInfos, videoInfo)
+
+	}
+
+	return videoInfos, nil
 }
 
 func (s *PostgreStore) GetDetailsUsingTitleAndDescription(title string, description string) ([]VideoInfo, error) {

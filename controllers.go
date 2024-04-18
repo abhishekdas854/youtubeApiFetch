@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -59,10 +60,27 @@ func (s *APIServer) Run() {
 func (s *APIServer) GetVideoDataPaginated(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "GET" {
-		return errors.New("Given endpoint only accepts get request")
+		return errors.New("given endpoint only accepts get request")
 	}
 
-	return nil
+	pageNo := mux.Vars(r)["pageNo"]
+
+	log.Println("Page no is: ", pageNo)
+	log.Printf("Page no type is: %T\n", pageNo)
+
+	pageNum, err := strconv.Atoi(pageNo)
+
+	if err != nil {
+		log.Fatal("Not valid page number: ", err)
+	}
+
+	res, err := s.store.GetDetailsFromDbPaginated(pageNum)
+
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, res)
 }
 
 func (s *APIServer) GetVideoDataUsingTitleAndDescription(w http.ResponseWriter, r *http.Request) error {
